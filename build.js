@@ -172,9 +172,23 @@ body{font-family:var(--font);font-size:14px;line-height:1.6;color:var(--text);ba
 
 /* Sidebar */
 .sidebar{width:280px;min-width:220px;max-width:380px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;resize:horizontal;}
-.sidebar-search{padding:10px;border-bottom:1px solid var(--border);}
-.sidebar-search input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--font);outline:none;background:#fff;}
+.sidebar-search{padding:10px;border-bottom:1px solid var(--border);position:relative;}
+.sidebar-search input{width:100%;padding:7px 10px 7px 32px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--font);outline:none;background:#fff;}
 .sidebar-search input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(26,108,176,.1);}
+.sidebar-search .search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;opacity:.5;}
+.sidebar-search .clear-btn{position:absolute;right:18px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-muted);display:none;padding:0 2px;}
+.sidebar-search .clear-btn.show{display:block;}
+/* 검색 결과 패널 */
+.search-results{display:none;flex-direction:column;border-top:1px solid var(--border);background:#fff;overflow-y:auto;max-height:55vh;}
+.search-results.show{display:flex;}
+.sr-header{padding:7px 12px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;}
+.sr-item{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.sr-item:hover{background:var(--accent-light);}
+.sr-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.sr-folder{font-size:10px;color:var(--text-muted);margin-bottom:4px;}
+.sr-excerpt{font-size:11px;color:#555;line-height:1.5;word-break:break-all;}
+.sr-excerpt mark{background:#fff3cd;color:#856404;border-radius:2px;padding:0 2px;font-style:normal;}
+.sr-no-result{padding:16px 12px;font-size:12px;color:var(--text-muted);text-align:center;}
 .sidebar-nav{flex:1;overflow-y:auto;padding:6px 0;}
 .sidebar-section{margin-bottom:2px;}
 .sidebar-section-title{padding:7px 14px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;user-select:none;display:flex;align-items:center;gap:5px;letter-spacing:.3px;}
@@ -239,7 +253,12 @@ body{font-family:var(--font);font-size:14px;line-height:1.6;color:var(--text);ba
 </div>
 <div class="layout">
   <div class="sidebar">
-    <div class="sidebar-search"><input type="text" id="search" placeholder="🔍 문서 검색..." oninput="filterDocs(this.value)"></div>
+    <div class="sidebar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="파일명 · 본문 검색..." oninput="filterDocs(this.value)" autocomplete="off">
+      <button class="clear-btn" id="clear-btn" onclick="clearSearch()" title="검색 초기화">✕</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
     <div class="sidebar-nav" id="sidebar-nav">${sidebarHtml}</div>
   </div>
   <div class="main" id="main">
@@ -266,24 +285,102 @@ function toggleSection(el) {
   if (ul) ul.classList.toggle('open');
 }
 
+let _searchTimer = null;
+
+function clearSearch() {
+  const inp = document.getElementById('search');
+  inp.value = '';
+  filterDocs('');
+  inp.focus();
+}
+
 function filterDocs(q) {
   const lower = q.toLowerCase().trim();
+  const clearBtn = document.getElementById('clear-btn');
+  const resultsEl = document.getElementById('search-results');
+
+  // Clear button visibility
+  if (clearBtn) clearBtn.classList.toggle('show', !!lower);
+
+  // Reset sidebar visibility
   document.querySelectorAll('.sidebar-item').forEach(li => {
-    const path = li.dataset.path || '';
-    const text = li.textContent.toLowerCase();
-    li.classList.toggle('hidden', !!lower && !text.includes(lower) && !path.toLowerCase().includes(lower));
+    li.classList.remove('hidden');
   });
-  // Auto-expand sections that have visible items
+
+  if (!lower) {
+    resultsEl.classList.remove('show');
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  // ── 사이드바 파일명 필터 ──────────────────────────────────
+  document.querySelectorAll('.sidebar-item').forEach(li => {
+    const path = (li.dataset.path || '').toLowerCase();
+    const text = li.textContent.toLowerCase();
+    li.classList.toggle('hidden', !text.includes(lower) && !path.includes(lower));
+  });
   document.querySelectorAll('.sidebar-section').forEach(sec => {
     const title = sec.querySelector('.sidebar-section-title');
     const list  = sec.querySelector('.sidebar-list');
-    if (!lower) { return; }
     const hasVisible = [...sec.querySelectorAll('.sidebar-item')].some(li => !li.classList.contains('hidden'));
-    if (hasVisible && list && !list.classList.contains('open')) {
-      list.classList.add('open');
-      if (title) title.classList.add('open');
+    if (hasVisible) {
+      list && list.classList.add('open');
+      title && title.classList.add('open');
     }
   });
+
+  // ── 본문 전문 검색 (디바운스 150ms) ──────────────────────
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    const re = new RegExp(lower.replace(/[.*+?^{}()|[\]\\$]/g, '\\$&'), 'gi');
+    const matches = [];
+
+    for (const doc of docs) {
+      const text = doc.content || '';
+      if (!text.toLowerCase().includes(lower)) continue;
+
+      // 첫 번째 매칭 위치로 발췌 생성
+      const idx = text.toLowerCase().indexOf(lower);
+      const start = Math.max(0, idx - 70);
+      const end   = Math.min(text.length, idx + lower.length + 70);
+      let excerpt = text.substring(start, end)
+        .replace(/[#*_\`>]/g, '')   // 마크다운 기호 제거
+        .replace(/\\n+/g, ' ')       // 줄바꿈 → 공백
+        .trim();
+      if (start > 0) excerpt = '…' + excerpt;
+      if (end < text.length) excerpt += '…';
+
+      // 매칭 단어 강조
+      const safeExcerpt = excerpt.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const highlighted = safeExcerpt.replace(re, m => \`<mark>\${m}</mark>\`);
+
+      // 전체 본문에서 총 매칭 횟수
+      const totalHits = (text.match(re) || []).length;
+
+      matches.push({ doc, excerpt: highlighted, totalHits });
+    }
+
+    if (matches.length === 0) {
+      resultsEl.classList.add('show');
+      resultsEl.innerHTML = \`<div class="sr-no-result">본문 검색 결과 없음</div>\`;
+      return;
+    }
+
+    // 매칭 횟수 많은 순 정렬
+    matches.sort((a, b) => b.totalHits - a.totalHits);
+
+    const rows = matches.slice(0, 30).map(m => {
+      const escapedPath = m.doc.path.replace(/'/g, "\\\\'");
+      return \`<div class="sr-item" onclick="loadDoc('\${escapedPath}', '\${lower.replace(/'/g, "\\\\'")}')">
+        <div class="sr-title">\${m.doc.name.replace(/\\.md$/, '')}</div>
+        <div class="sr-folder">\${m.doc.folderLabel} &nbsp;·&nbsp; 일치 \${m.totalHits}건</div>
+        <div class="sr-excerpt">\${m.excerpt}</div>
+      </div>\`;
+    }).join('');
+
+    resultsEl.classList.add('show');
+    resultsEl.innerHTML = \`<div class="sr-header">본문 검색 결과 \${matches.length}건 (상위 30개 표시)</div>\${rows}\`;
+  }, 150);
 }
 
 function loadDoc(docPath) {

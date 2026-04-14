@@ -32,9 +32,23 @@ body{font-family:var(--font);font-size:14px;line-height:1.6;color:var(--text);ba
 
 /* Sidebar */
 .sidebar{width:280px;min-width:220px;max-width:380px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;resize:horizontal;}
-.sidebar-search{padding:10px;border-bottom:1px solid var(--border);}
-.sidebar-search input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--font);outline:none;background:#fff;}
+.sidebar-search{padding:10px;border-bottom:1px solid var(--border);position:relative;}
+.sidebar-search input{width:100%;padding:7px 10px 7px 32px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--font);outline:none;background:#fff;}
 .sidebar-search input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(26,108,176,.1);}
+.sidebar-search .search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;opacity:.5;}
+.sidebar-search .clear-btn{position:absolute;right:18px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-muted);display:none;padding:0 2px;}
+.sidebar-search .clear-btn.show{display:block;}
+/* 검색 결과 패널 */
+.search-results{display:none;flex-direction:column;border-top:1px solid var(--border);background:#fff;overflow-y:auto;max-height:55vh;}
+.search-results.show{display:flex;}
+.sr-header{padding:7px 12px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;}
+.sr-item{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.sr-item:hover{background:var(--accent-light);}
+.sr-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.sr-folder{font-size:10px;color:var(--text-muted);margin-bottom:4px;}
+.sr-excerpt{font-size:11px;color:#555;line-height:1.5;word-break:break-all;}
+.sr-excerpt mark{background:#fff3cd;color:#856404;border-radius:2px;padding:0 2px;font-style:normal;}
+.sr-no-result{padding:16px 12px;font-size:12px;color:var(--text-muted);text-align:center;}
 .sidebar-nav{flex:1;overflow-y:auto;padding:6px 0;}
 .sidebar-section{margin-bottom:2px;}
 .sidebar-section-title{padding:7px 14px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;user-select:none;display:flex;align-items:center;gap:5px;letter-spacing:.3px;}
@@ -99,7 +113,12 @@ body{font-family:var(--font);font-size:14px;line-height:1.6;color:var(--text);ba
 </div>
 <div class="layout">
   <div class="sidebar">
-    <div class="sidebar-search"><input type="text" id="search" placeholder="🔍 문서 검색..." oninput="filterDocs(this.value)"></div>
+    <div class="sidebar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="파일명 · 본문 검색..." oninput="filterDocs(this.value)" autocomplete="off">
+      <button class="clear-btn" id="clear-btn" onclick="clearSearch()" title="검색 초기화">✕</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
     <div class="sidebar-nav" id="sidebar-nav"><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">00. 절차서 목록 <span class="count">(2)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('00. ★절차서목록_전체프로세스관리/표준문서준비현황_03.10_final.md')" data-path="00. ★절차서목록_전체프로세스관리/표준문서준비현황_03.10_final.md"><span class="sidebar-item-text">표준문서준비현황_03.10_final</span></li><li class="sidebar-item" onclick="loadDoc('00. ★절차서목록_전체프로세스관리/ISO.04.09.07 ISO문서목록_260313.md')" data-path="00. ★절차서목록_전체프로세스관리/ISO.04.09.07 ISO문서목록_260313.md"><span class="sidebar-item-text">ISO.04.09.07 ISO문서목록_260313</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">01. 조직맥락결정 <span class="count">(5)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('1.조직맥락결정_절차/1. 조직맥락결정_절차.md')" data-path="1.조직맥락결정_절차/1. 조직맥락결정_절차.md"><span class="sidebar-item-text">1. 조직맥락결정_절차</span></li><li class="sidebar-item" onclick="loadDoc('1.조직맥락결정_절차/1.3.5 ISO.04.00.19. 부서별직무위험분석.md')" data-path="1.조직맥락결정_절차/1.3.5 ISO.04.00.19. 부서별직무위험분석.md"><span class="sidebar-item-text">1.3.5 ISO.04.00.19. 부서별직무위험분석</span></li><li class="sidebar-item" onclick="loadDoc('1.조직맥락결정_절차/2. 조직맥락결정표.md')" data-path="1.조직맥락결정_절차/2. 조직맥락결정표.md"><span class="sidebar-item-text">2. 조직맥락결정표</span></li><li class="sidebar-item" onclick="loadDoc('1.조직맥락결정_절차/3. 이해관계자요구사항결정표.md')" data-path="1.조직맥락결정_절차/3. 이해관계자요구사항결정표.md"><span class="sidebar-item-text">3. 이해관계자요구사항결정표</span></li><li class="sidebar-item" onclick="loadDoc('1.조직맥락결정_절차/4. 리스크및기회결정표.md')" data-path="1.조직맥락결정_절차/4. 리스크및기회결정표.md"><span class="sidebar-item-text">4. 리스크및기회결정표</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">02. 품질매뉴얼 <span class="count">(2)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('2. 품질매뉴얼/2.ISO 03.04.02. 품질매뉴얼(영문&베트남어)_230522.md')" data-path="2. 품질매뉴얼/2.ISO 03.04.02. 품질매뉴얼(영문&베트남어)_230522.md"><span class="sidebar-item-text">2.ISO 03.04.02. 품질매뉴얼(영문&베트남어)_230522</span></li><li class="sidebar-item" onclick="loadDoc('2. 품질매뉴얼/품질매뉴얼_IATF_16949_ Quality manual.md')" data-path="2. 품질매뉴얼/품질매뉴얼_IATF_16949_ Quality manual.md"><span class="sidebar-item-text">품질매뉴얼_IATF_16949_ Quality manual</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">03. 문서관리 <span class="count">(3)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('3.문서관리_절차/3.1 문서관리절차_ISO.02.05.04.ver6.md')" data-path="3.문서관리_절차/3.1 문서관리절차_ISO.02.05.04.ver6.md"><span class="sidebar-item-text">3.1 문서관리절차_ISO.02.05.04.ver6</span></li><li class="sidebar-item" onclick="loadDoc('3.문서관리_절차/3.1.1 ISO.03.05.02 사내문서목록.md')" data-path="3.문서관리_절차/3.1.1 ISO.03.05.02 사내문서목록.md"><span class="sidebar-item-text">3.1.1 ISO.03.05.02 사내문서목록</span></li><li class="sidebar-item" onclick="loadDoc('3.문서관리_절차/3.3 외부문서목록_ISO04.09.08.md')" data-path="3.문서관리_절차/3.3 외부문서목록_ISO04.09.08.md"><span class="sidebar-item-text">3.3 외부문서목록_ISO04.09.08</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">10. 내부심사 <span class="count">(5)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('10.내부심사_절차/10.1 내부심사절차_갱신.md')" data-path="10.내부심사_절차/10.1 내부심사절차_갱신.md"><span class="sidebar-item-text">10.1 내부심사절차_갱신</span></li><li class="sidebar-item" onclick="loadDoc('10.내부심사_절차/10.2 ISO.02.00.19 내부심사절차_20220702.md')" data-path="10.내부심사_절차/10.2 ISO.02.00.19 내부심사절차_20220702.md"><span class="sidebar-item-text">10.2 ISO.02.00.19 내부심사절차_20220702</span></li><li class="sidebar-item" onclick="loadDoc('10.내부심사_절차/10.3_QM.04.00.20_QSA체크시트(ISO9001및IATF16949)_ver02.md')" data-path="10.내부심사_절차/10.3_QM.04.00.20_QSA체크시트(ISO9001및IATF16949)_ver02.md"><span class="sidebar-item-text">10.3_QM.04.00.20_QSA체크시트(ISO9001및IATF16949)_ver02</span></li><li class="sidebar-item" onclick="loadDoc('10.내부심사_절차/10.4_QM.04.00.21_QPA내부심사체크시트_ver02.md')" data-path="10.내부심사_절차/10.4_QM.04.00.21_QPA내부심사체크시트_ver02.md"><span class="sidebar-item-text">10.4_QM.04.00.21_QPA내부심사체크시트_ver02</span></li><li class="sidebar-item" onclick="loadDoc('10.내부심사_절차/10.5_QM.04.00.22_제품심사체크시트_ver0.md')" data-path="10.내부심사_절차/10.5_QM.04.00.22_제품심사체크시트_ver0.md"><span class="sidebar-item-text">10.5_QM.04.00.22_제품심사체크시트_ver0</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">11. 개발품 품질보증 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('11.개발품품질보증_절차/11. ISO.03.00.07 개발품품질보증프로세스_20220418.md')" data-path="11.개발품품질보증_절차/11. ISO.03.00.07 개발품품질보증프로세스_20220418.md"><span class="sidebar-item-text">11. ISO.03.00.07 개발품품질보증프로세스_20220418</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">12. PPAP 승인 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('12.PPAP승인_지침서/12. R&D.02.00.22 PPAP프로세스승인지침서.md')" data-path="12.PPAP승인_지침서/12. R&D.02.00.22 PPAP프로세스승인지침서.md"><span class="sidebar-item-text">12. R&D.02.00.22 PPAP프로세스승인지침서</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">13. 제품품질기획(APQP) <span class="count">(3)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('13. 제품품질기획(APQP)_절차/13. R&D.02.05.08_신제품품질기획절차(APQP)_20220420.md')" data-path="13. 제품품질기획(APQP)_절차/13. R&D.02.05.08_신제품품질기획절차(APQP)_20220420.md"><span class="sidebar-item-text">13. R&D.02.05.08_신제품품질기획절차(APQP)_20220420</span></li><li class="sidebar-item" onclick="loadDoc('13. 제품품질기획(APQP)_절차/R&D.02.03.10_내부신제품품질기획절차(APQP).md')" data-path="13. 제품품질기획(APQP)_절차/R&D.02.03.10_내부신제품품질기획절차(APQP).md"><span class="sidebar-item-text">R&D.02.03.10_내부신제품품질기획절차(APQP)</span></li><li class="sidebar-item" onclick="loadDoc('13. 제품품질기획(APQP)_절차/R&D.02.05.08_신제품품질기획절차(APQP)_20240429.md')" data-path="13. 제품품질기획(APQP)_절차/R&D.02.05.08_신제품품질기획절차(APQP)_20240429.md"><span class="sidebar-item-text">R&D.02.05.08_신제품품질기획절차(APQP)_20240429</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">14. 정보보안방침 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('14.정보보안방침/14.1 RBA-D301.01.00.24 정보보안체크시트.md')" data-path="14.정보보안방침/14.1 RBA-D301.01.00.24 정보보안체크시트.md"><span class="sidebar-item-text">14.1 RBA-D301.01.00.24 정보보안체크시트</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">15. 의사소통 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('15.의사소통_절차/15 에스컬레이션절차_의사소통절차_20220916.md')" data-path="15.의사소통_절차/15 에스컬레이션절차_의사소통절차_20220916.md"><span class="sidebar-item-text">15 에스컬레이션절차_의사소통절차_20220916</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">16. 생산계획수립 <span class="count">(2)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('16.생산계획수립_절차/16.1 PP.02.02.01 생산계획수립절차_20220706.md')" data-path="16.생산계획수립_절차/16.1 PP.02.02.01 생산계획수립절차_20220706.md"><span class="sidebar-item-text">16.1 PP.02.02.01 생산계획수립절차_20220706</span></li><li class="sidebar-item" onclick="loadDoc('16.생산계획수립_절차/16.2 PP.02.00.02 불량생산계획처리절차_20220706.md')" data-path="16.생산계획수립_절차/16.2 PP.02.00.02 불량생산계획처리절차_20220706.md"><span class="sidebar-item-text">16.2 PP.02.00.02 불량생산계획처리절차_20220706</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">17. 주문접수·계약검토 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('17.주문접수및처리_계약검토_절차(영업)/17.1 SAL.02.00.02. 주문검토절차.md')" data-path="17.주문접수및처리_계약검토_절차(영업)/17.1 SAL.02.00.02. 주문검토절차.md"><span class="sidebar-item-text">17.1 SAL.02.00.02. 주문검토절차</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">18. 신제품개발 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('18.신제품개발_절차/18. 제품개발절차_설계개발관리절차.md')" data-path="18.신제품개발_절차/18. 제품개발절차_설계개발관리절차.md"><span class="sidebar-item-text">18. 제품개발절차_설계개발관리절차</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">19. 특수특성관리 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('19.특수특성관리_지침서/19. R&D.02.06.07_특수특성관리지침서(FMEA)_20210315.md')" data-path="19.특수특성관리_지침서/19. R&D.02.06.07_특수특성관리지침서(FMEA)_20210315.md"><span class="sidebar-item-text">19. R&D.02.06.07_특수특성관리지침서(FMEA)_20210315</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">20. 시험생산 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('20.시험생산_절차/20. 시험생산절차.md')" data-path="20.시험생산_절차/20. 시험생산절차.md"><span class="sidebar-item-text">20. 시험생산절차</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">21. 구매·공급업체평가 <span class="count">(15)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/21.1. PUR.02.00.01 공급업체관리절차_갱신.md')" data-path="21.구매및공급업체평가_규정/21.1. PUR.02.00.01 공급업체관리절차_갱신.md"><span class="sidebar-item-text">21.1. PUR.02.00.01 공급업체관리절차_갱신</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/21.2. PUR.03.01.02 공급업체평가지침서.md')" data-path="21.구매및공급업체평가_규정/21.2. PUR.03.01.02 공급업체평가지침서.md"><span class="sidebar-item-text">21.2. PUR.03.01.02 공급업체평가지침서</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/1.잉곳/잉곳체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/1.잉곳/잉곳체크시트.md"><span class="sidebar-item-text">잉곳체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/10.라벨/공급업체평가_XLABELS.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/10.라벨/공급업체평가_XLABELS.md"><span class="sidebar-item-text">공급업체평가_XLABELS</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/10.라벨/QPA라벨체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/10.라벨/QPA라벨체크시트.md"><span class="sidebar-item-text">QPA라벨체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/11.잉크/공급업체평가_RZ.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/11.잉크/공급업체평가_RZ.md"><span class="sidebar-item-text">공급업체평가_RZ</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/2.프레스/QPA프레스체크시트_KMG.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/2.프레스/QPA프레스체크시트_KMG.md"><span class="sidebar-item-text">QPA프레스체크시트_KMG</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/2.프레스/QPA프레스체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/2.프레스/QPA프레스체크시트.md"><span class="sidebar-item-text">QPA프레스체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/3.블라스터/블라스터체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/3.블라스터/블라스터체크시트.md"><span class="sidebar-item-text">블라스터체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/4.CNC/QPA체크시트_CNC.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/4.CNC/QPA체크시트_CNC.md"><span class="sidebar-item-text">QPA체크시트_CNC</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/6.분체도장/QPA도장체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/6.분체도장/QPA도장체크시트.md"><span class="sidebar-item-text">QPA도장체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/7.테이프/QPA테이프체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/7.테이프/QPA테이프체크시트.md"><span class="sidebar-item-text">QPA테이프체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/8.수성도장/QPA체크시트.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/8.수성도장/QPA체크시트.md"><span class="sidebar-item-text">QPA체크시트</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/9.아노다이징/QPA아노다이징체크시트(HM).md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/9.아노다이징/QPA아노다이징체크시트(HM).md"><span class="sidebar-item-text">QPA아노다이징체크시트(HM)</span></li><li class="sidebar-item" onclick="loadDoc('21.구매및공급업체평가_규정/품질심사체크시트/9.아노다이징/QPA아노다이징체크시트xlsx.md')" data-path="21.구매및공급업체평가_규정/품질심사체크시트/9.아노다이징/QPA아노다이징체크시트xlsx.md"><span class="sidebar-item-text">QPA아노다이징체크시트xlsx</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">22. 보관·입출고 <span class="count">(7)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.1 창고관리절차_2025_27.06.2025.md')" data-path="22.보관및입출고_절차/22.1 창고관리절차_2025_27.06.2025.md"><span class="sidebar-item-text">22.1 창고관리절차_2025_27.06.2025</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.2 WH.03.00.03 창고관리규정.md')" data-path="22.보관및입출고_절차/22.2 WH.03.00.03 창고관리규정.md"><span class="sidebar-item-text">22.2 WH.03.00.03 창고관리규정</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.3 알루미늄안전재고규정_2024.md')" data-path="22.보관및입출고_절차/22.3 알루미늄안전재고규정_2024.md"><span class="sidebar-item-text">22.3 알루미늄안전재고규정_2024</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.4 WH.03.01.08 6개월이상재고관리절차_18.6.md')" data-path="22.보관및입출고_절차/22.4 WH.03.01.08 6개월이상재고관리절차_18.6.md"><span class="sidebar-item-text">22.4 WH.03.01.08 6개월이상재고관리절차_18.6</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.5 유효기간만료및임박품처리절차_20220706.md')" data-path="22.보관및입출고_절차/22.5 유효기간만료및임박품처리절차_20220706.md"><span class="sidebar-item-text">22.5 유효기간만료및임박품처리절차_20220706</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.6 WH.02.00.10 공급업체NG반품절차.md')" data-path="22.보관및입출고_절차/22.6 WH.02.00.10 공급업체NG반품절차.md"><span class="sidebar-item-text">22.6 WH.02.00.10 공급업체NG반품절차</span></li><li class="sidebar-item" onclick="loadDoc('22.보관및입출고_절차/22.7 WH.03.00.02 선입선출(FIFO)규정_27.06.2025.md')" data-path="22.보관및입출고_절차/22.7 WH.03.00.02 선입선출(FIFO)규정_27.06.2025.md"><span class="sidebar-item-text">22.7 WH.03.00.02 선입선출(FIFO)규정_27.06.2025</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">23. 생산라인 셋업 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('23.생산라인셋업_절차/23.1 생산라인셋업절차.md')" data-path="23.생산라인셋업_절차/23.1 생산라인셋업절차.md"><span class="sidebar-item-text">23.1 생산라인셋업절차</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">24. QC 검사 <span class="count">(2)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('24.QC검사_절차/24. IQC_PQC_OQC공정검사절차_20220706.md')" data-path="24.QC검사_절차/24. IQC_PQC_OQC공정검사절차_20220706.md"><span class="sidebar-item-text">24. IQC_PQC_OQC공정검사절차_20220706</span></li><li class="sidebar-item" onclick="loadDoc('24.QC검사_절차/24.6 QM.03.01.13 샘플보관규정.md')" data-path="24.QC검사_절차/24.6 QM.03.01.13 샘플보관규정.md"><span class="sidebar-item-text">24.6 QM.03.01.13 샘플보관규정</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">25. 한도샘플관리 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('25.한도샘플관리_절차/25. 한도샘플및기준샘플관리절차_20220706.md')" data-path="25.한도샘플관리_절차/25. 한도샘플및기준샘플관리절차_20220706.md"><span class="sidebar-item-text">25. 한도샘플및기준샘플관리절차_20220706</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">26. 산포제품처리 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('26.산포제품처리/26. 산포제품처리절차.md')" data-path="26.산포제품처리/26. 산포제품처리절차.md"><span class="sidebar-item-text">26. 산포제품처리절차</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">27. 부적합품(NG)처리 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('27.부적합품(NG)처리_절차/부적합품(NG)처리_Kang_흐름도_R01.md')" data-path="27.부적합품(NG)처리_절차/부적합품(NG)처리_Kang_흐름도_R01.md"><span class="sidebar-item-text">부적합품(NG)처리_Kang_흐름도_R01</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">28. NG 신뢰성 처리 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('28. NG신뢰성발생시처리_절차/NG신뢰성처리절차_최종.md')" data-path="28. NG신뢰성발생시처리_절차/NG신뢰성처리절차_최종.md"><span class="sidebar-item-text">NG신뢰성처리절차_최종</span></li></ul></div><div class="sidebar-section"><div class="sidebar-section-title open" onclick="toggleSection(this)">29. 부적합품 사용요청 <span class="count">(1)</span></div><ul class="sidebar-list open"><li class="sidebar-item" onclick="loadDoc('29.부적합품사용요청_절차/29. QM.02.00.05 부적합품사용요청절차_편차절차_2023.05.22.md')" data-path="29.부적합품사용요청_절차/29. QM.02.00.05 부적합품사용요청절차_편차절차_2023.05.22.md"><span class="sidebar-item-text">29. QM.02.00.05 부적합품사용요청절차_편차절차_2023.05.22</span></li></ul></div></div>
   </div>
   <div class="main" id="main">
@@ -126,24 +145,102 @@ function toggleSection(el) {
   if (ul) ul.classList.toggle('open');
 }
 
+let _searchTimer = null;
+
+function clearSearch() {
+  const inp = document.getElementById('search');
+  inp.value = '';
+  filterDocs('');
+  inp.focus();
+}
+
 function filterDocs(q) {
   const lower = q.toLowerCase().trim();
+  const clearBtn = document.getElementById('clear-btn');
+  const resultsEl = document.getElementById('search-results');
+
+  // Clear button visibility
+  if (clearBtn) clearBtn.classList.toggle('show', !!lower);
+
+  // Reset sidebar visibility
   document.querySelectorAll('.sidebar-item').forEach(li => {
-    const path = li.dataset.path || '';
-    const text = li.textContent.toLowerCase();
-    li.classList.toggle('hidden', !!lower && !text.includes(lower) && !path.toLowerCase().includes(lower));
+    li.classList.remove('hidden');
   });
-  // Auto-expand sections that have visible items
+
+  if (!lower) {
+    resultsEl.classList.remove('show');
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  // ── 사이드바 파일명 필터 ──────────────────────────────────
+  document.querySelectorAll('.sidebar-item').forEach(li => {
+    const path = (li.dataset.path || '').toLowerCase();
+    const text = li.textContent.toLowerCase();
+    li.classList.toggle('hidden', !text.includes(lower) && !path.includes(lower));
+  });
   document.querySelectorAll('.sidebar-section').forEach(sec => {
     const title = sec.querySelector('.sidebar-section-title');
     const list  = sec.querySelector('.sidebar-list');
-    if (!lower) { return; }
     const hasVisible = [...sec.querySelectorAll('.sidebar-item')].some(li => !li.classList.contains('hidden'));
-    if (hasVisible && list && !list.classList.contains('open')) {
-      list.classList.add('open');
-      if (title) title.classList.add('open');
+    if (hasVisible) {
+      list && list.classList.add('open');
+      title && title.classList.add('open');
     }
   });
+
+  // ── 본문 전문 검색 (디바운스 150ms) ──────────────────────
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    const re = new RegExp(lower.replace(/[.*+?^{}()|[]\$]/g, '\$&'), 'gi');
+    const matches = [];
+
+    for (const doc of docs) {
+      const text = doc.content || '';
+      if (!text.toLowerCase().includes(lower)) continue;
+
+      // 첫 번째 매칭 위치로 발췌 생성
+      const idx = text.toLowerCase().indexOf(lower);
+      const start = Math.max(0, idx - 70);
+      const end   = Math.min(text.length, idx + lower.length + 70);
+      let excerpt = text.substring(start, end)
+        .replace(/[#*_`>]/g, '')   // 마크다운 기호 제거
+        .replace(/\n+/g, ' ')       // 줄바꿈 → 공백
+        .trim();
+      if (start > 0) excerpt = '…' + excerpt;
+      if (end < text.length) excerpt += '…';
+
+      // 매칭 단어 강조
+      const safeExcerpt = excerpt.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const highlighted = safeExcerpt.replace(re, m => `<mark>${m}</mark>`);
+
+      // 전체 본문에서 총 매칭 횟수
+      const totalHits = (text.match(re) || []).length;
+
+      matches.push({ doc, excerpt: highlighted, totalHits });
+    }
+
+    if (matches.length === 0) {
+      resultsEl.classList.add('show');
+      resultsEl.innerHTML = `<div class="sr-no-result">본문 검색 결과 없음</div>`;
+      return;
+    }
+
+    // 매칭 횟수 많은 순 정렬
+    matches.sort((a, b) => b.totalHits - a.totalHits);
+
+    const rows = matches.slice(0, 30).map(m => {
+      const escapedPath = m.doc.path.replace(/'/g, "\\'");
+      return `<div class="sr-item" onclick="loadDoc('${escapedPath}', '${lower.replace(/'/g, "\\'")}')">
+        <div class="sr-title">${m.doc.name.replace(/\.md$/, '')}</div>
+        <div class="sr-folder">${m.doc.folderLabel} &nbsp;·&nbsp; 일치 ${m.totalHits}건</div>
+        <div class="sr-excerpt">${m.excerpt}</div>
+      </div>`;
+    }).join('');
+
+    resultsEl.classList.add('show');
+    resultsEl.innerHTML = `<div class="sr-header">본문 검색 결과 ${matches.length}건 (상위 30개 표시)</div>${rows}`;
+  }, 150);
 }
 
 function loadDoc(docPath) {
